@@ -1,5 +1,9 @@
 # Nusantara in Numbers
 
+[![make.fun](https://make.fun/badge/best-national-statistics-site-20261126-0539.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539)
+[![make.fun rank](https://make.fun/badge/best-national-statistics-site-20261126-0539/faj17/best-national-statistics-site-20261126-0539b/rank.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539)
+[![make.fun reward](https://make.fun/badge/best-national-statistics-site-20261126-0539/faj17/best-national-statistics-site-20261126-0539b/reward.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539)
+
 Indonesia's national statistics, plainly presented: population, economy, health,
 education and provinces — every figure with its source and year.
 
