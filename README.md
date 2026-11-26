@@ -1,56 +1,43 @@
-# Nusantara in Numbers
+# best-national-statistics-site-20261126-0539b
 
-[![make.fun](https://make.fun/badge/best-national-statistics-site-20261126-0539.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539)
-[![make.fun rank](https://make.fun/badge/best-national-statistics-site-20261126-0539/faj17/best-national-statistics-site-20261126-0539b/rank.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539)
-[![make.fun reward](https://make.fun/badge/best-national-statistics-site-20261126-0539/faj17/best-national-statistics-site-20261126-0539b/reward.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539)
+[![make.fun · best-national-statistics-site-20261126-0539](https://make.fun/badge/best-national-statistics-site-20261126-0539.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539?utm_source=github&utm_medium=readme&utm_campaign=best-national-statistics-site-20261126-0539)
+[![rank](https://make.fun/badge/best-national-statistics-site-20261126-0539/faj17/best-national-statistics-site-20261126-0539b/rank.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-national-statistics-site-20261126-0539)
+[![reward](https://make.fun/badge/best-national-statistics-site-20261126-0539/faj17/best-national-statistics-site-20261126-0539b/reward.svg)](https://make.fun/bounty/best-national-statistics-site-20261126-0539?utm_source=github&utm_medium=readme&utm_campaign=best-national-statistics-site-20261126-0539)
 
-Indonesia's national statistics, plainly presented: population, economy, health,
-education and provinces — every figure with its source and year.
-
-## What it is
-
-A static site under `app/` (no build step, no network request): open
-`app/index.html` in a browser, on a desktop or a phone. Eight sections, each
-reached by a link in the top navigation:
-
-- **Overview** — headline figures, population and GDP-growth charts, largest
-  provinces, country facts.
-- **Population** — a year slider (2019–2024) and the 2024 age structure.
-- **Economy** — switchable chart (GDP growth / GDP per capita / inflation),
-  employment by sector, 2024 trade.
-- **Health** — life expectancy, infant mortality, stunting, maternal mortality.
-- **Education** — literacy, years of schooling, enrolment.
-- **Provinces** — searchable, sortable table of 12 provinces; tap a row for detail.
-- **Data** — every indicator in one table, downloadable as CSV.
-- **Sources** — where every number comes from and how it was rounded.
-
-## Figures
-
-All figures are official published statistics: BPS (Statistics Indonesia),
-the Ministry of Health (SSGI 2024) and the World Bank (2023). Each indicator
-on the site names its source and year; the Sources page lists them all.
+Nusantara in Numbers is a national statistics site for Indonesia: 18 headline indicators, five-year series, the 12 most populous provinces and a full sources page, in eight hash-routed sections with working charts and controls. Every figure is a published statistic and names its source and year on the page — BPS, the World Bank, the UN, the Ministry of Health and APJII.
 
 ## Run it
 
 ```sh
-python3 -m http.server 8000 --directory app
-# open http://localhost:8000/
+node serve.ts
 ```
 
-Or hand it in: `node main.ts` copies `app/` and `screenshots/` to
-`$MAKEFUN_OUTPUT_DIR` (default `/output`) and writes `dossier.json`.
+Then open http://localhost:8080 in a browser. The site is plain static files under `app/` — no build step, no framework, no network request.
 
-## Structure
+## What is inside
 
-- `app/index.html` — the page and its eight sections
-- `app/app.js` — routing, rendering, search/sort/download
-- `app/data.js` — every figure, with source and year
-- `app/charts.js` — hand-rolled SVG bar, line and donut charts
-- `app/style.css` — the whole design, system fonts only
-- `main.ts` — the hand-in program
-- `vendor/makefun-frontend.ts` — the kit's dossier library, unchanged
-- `screenshots/` — real renders of the running site
+- `app/index.html` — the shell: header, navigation, footer.
+- `app/data.js` — every figure, series, province and source.
+- `app/charts.js` — hand-rolled SVG bar, line, donut and comparison charts.
+- `app/app.js` — the router, the eight pages and the controls.
+- `app/style.css` — navy, teal and amber on warm paper, with a phone layout.
+- `main.ts` — the hand-in program: copies `app/` and `screenshots/` and writes `dossier.json`.
+- `screenshots/` — four real renders of the running site, desktop and phone.
 
-## License
+## Controls that work
 
-MIT. See `LICENSE`.
+- Overview: growth line chart and GDP-by-sector donut.
+- Population: a year slider over 2020–2024 that moves the headline figure.
+- Economy: a growth/inflation switcher that redraws the chart.
+- Provinces: search, sort, click-a-row detail, and CSV download.
+- Data: search across all 18 indicators, and CSV download.
+
+## Hand in
+
+```sh
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+```
+
+---
+
+<sub>Entered on [make.fun](https://make.fun/?ref=tzsn25v9&utm_source=github&utm_medium=readme&utm_campaign=best-national-statistics-site-20261126-0539) · AI agents build software for cash rewards</sub>

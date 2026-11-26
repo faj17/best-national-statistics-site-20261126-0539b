@@ -3,198 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nusantara in Numbers — Indonesia's National Statistics</title>
-<meta name="description" content="Indonesia's national statistics, plainly presented: population, economy, health, education and provinces, with every figure sourced and dated.">
+<title>Nusantara in Numbers — Indonesia in numbers</title>
+<meta name="description" content="Indonesia in numbers: population, economy, health, education and provinces — every figure with its source and year.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="wrap topbar-inner">
-    <a class="brand" href="#/overview"><span class="brand-mark">N</span><span class="brand-name">Nusantara <em>in Numbers</em></span></a>
-    <nav aria-label="Sections">
-      <a class="nav-link" data-route="overview" href="#/overview">Overview</a>
-      <a class="nav-link" data-route="population" href="#/population">Population</a>
-      <a class="nav-link" data-route="economy" href="#/economy">Economy</a>
-      <a class="nav-link" data-route="health" href="#/health">Health</a>
-      <a class="nav-link" data-route="education" href="#/education">Education</a>
-      <a class="nav-link" data-route="regions" href="#/regions">Provinces</a>
-      <a class="nav-link" data-route="data" href="#/data">Data</a>
-      <a class="nav-link" data-route="about" href="#/about">Sources</a>
-    </nav>
+<header class="site-header">
+  <div class="brand">
+    <h1>Nusantara <span class="mark">in Numbers</span></h1>
+    <p>Indonesia in numbers — plain, sourced, up to date</p>
   </div>
+  <nav class="site-nav" id="site-nav" aria-label="Sections"></nav>
 </header>
 
-<main class="wrap">
-  <p class="kicker">Statistics Indonesia · BPS &amp; official sources · Updated 26 November 2026</p>
-  <h1 id="page-title">Indonesia at a glance</h1>
+<main class="page" id="page"></main>
 
-  <section id="page-overview" aria-label="Overview">
-    <p class="lede">One country, 281.6 million people, 38 provinces, 17,000 islands — and the numbers that describe them, each with its source and year.</p>
-    <div class="stat-grid" id="headline-stats"></div>
-
-    <div class="two-col">
-      <article class="card">
-        <h2>Population, 2019–2024</h2>
-        <p class="card-note">Millions, mid-year estimates. <a href="#/population">Full population page →</a></p>
-        <div class="chart" id="chart-pop-overview"></div>
-        <p class="source">Source: BPS (Statistics Indonesia).</p>
-      </article>
-      <article class="card">
-        <h2>GDP growth, 2019–2024</h2>
-        <p class="card-note">Percent, year on year. <a href="#/economy">Full economy page →</a></p>
-        <div class="chart" id="chart-gdp-overview"></div>
-        <p class="source">Source: BPS (Statistics Indonesia).</p>
-      </article>
-    </div>
-
-    <div class="two-col">
-      <article class="card">
-        <h2>Largest provinces</h2>
-        <p class="card-note">Population, millions, 2024. <a href="#/regions">All provinces →</a></p>
-        <ul class="rank-list" id="top-provinces"></ul>
-        <p class="source">Source: BPS 2024 mid-year estimates.</p>
-      </article>
-      <article class="card">
-        <h2>The country in brief</h2>
-        <p class="card-note">The shape of Indonesia, in four facts.</p>
-        <ul class="release-list" id="releases"></ul>
-      </article>
-    </div>
-  </section>
-
-  <section id="page-population" aria-label="Population" hidden>
-    <p class="lede">Indonesia is the world's fourth most populous country. Pick a year to see the figure, then the age structure underneath.</p>
-    <article class="card">
-      <h2>Population in <span id="pop-year-label">2024</span></h2>
-      <p class="big-number" id="pop-year-value">281.6 million</p>
-      <p class="card-note" id="pop-year-note"></p>
-      <label class="slider-label" for="pop-year">Year
-        <input type="range" id="pop-year" min="2019" max="2024" step="1" value="2024">
-        <span class="slider-years"><span>2019</span><span>2024</span></span>
-      </label>
-      <div class="chart" id="chart-population"></div>
-      <p class="source">Source: BPS (Statistics Indonesia), mid-year estimates.</p>
-    </article>
-    <article class="card">
-      <h2>Age structure, 2024</h2>
-      <p class="card-note">Share of the population in each age group. Two in three Indonesians are of working age.</p>
-      <div class="chart" id="chart-age"></div>
-      <p class="source">Source: BPS, 2024.</p>
-    </article>
-  </section>
-
-  <section id="page-economy" aria-label="Economy" hidden>
-    <p class="lede">The largest economy in Southeast Asia. Switch the chart between growth, income per person and inflation.</p>
-    <article class="card">
-      <h2>Economy, 2019–2024</h2>
-      <div class="btn-row" role="group" aria-label="Choose indicator">
-        <button type="button" data-metric="growth" class="active">GDP growth</button>
-        <button type="button" data-metric="capita">GDP per capita</button>
-        <button type="button" data-metric="inflation">Inflation</button>
-      </div>
-      <div class="chart" id="chart-economy"></div>
-      <p class="source" id="econ-note"></p>
-    </article>
-    <div class="two-col">
-      <article class="card">
-        <h2>Who works where</h2>
-        <p class="card-note">Share of employed persons, August 2024.</p>
-        <div class="chart chart-donut" id="chart-sectors"></div>
-        <ul class="legend" id="sector-legend"></ul>
-        <p class="source">Source: BPS, August 2024.</p>
-      </article>
-      <article class="card">
-        <h2>Trade in 2024</h2>
-        <p class="card-note">Goods trade, current US dollars.</p>
-        <div class="stat-grid stat-grid-one" id="trade-cards"></div>
-        <p class="source">Source: BPS, 2024.</p>
-      </article>
-    </div>
-  </section>
-
-  <section id="page-health" aria-label="Health" hidden>
-    <p class="lede">How long Indonesians live, and how healthy their children are — four indicators, each sourced.</p>
-    <div class="stat-grid" id="health-cards"></div>
-    <article class="card">
-      <h2>Reading the numbers</h2>
-      <p>Life expectancy has risen steadily for a decade, to 74.15 years in 2024. Stunting — children too short for their age — fell to 19.8% of under-fives in 2024, still the health system's biggest unfinished job. Maternal mortality, 173 deaths per 100,000 live births in 2023, is the figure the government tracks against its 2030 target.</p>
-      <p class="source">Sources: BPS 2024; Ministry of Health (SSGI) 2024; World Bank 2023.</p>
-    </article>
-  </section>
-
-  <section id="page-education" aria-label="Education" hidden>
-    <p class="lede">Schooling in Indonesia: near-universal literacy, nine years of schooling on average, and a third of young people reaching university.</p>
-    <div class="stat-grid" id="education-cards"></div>
-    <article class="card">
-      <h2>Reading the numbers</h2>
-      <p>Adult literacy reached 96.0% in 2024, and primary school enrolment is effectively universal at 97.9%. The gap opens after that: the average Indonesian aged 25 and over has 9.0 years of schooling, and 31.4% of the tertiary-age population is enrolled in higher education — the number the government is trying hardest to lift.</p>
-      <p class="source">Sources: BPS 2024 and 2023.</p>
-    </article>
-  </section>
-
-  <section id="page-regions" aria-label="Provinces" hidden>
-    <p class="lede">Twelve of Indonesia's 38 provinces, home to most of the population. Search, sort, or tap a row for the detail.</p>
-    <article class="card">
-      <h2>Provinces compared</h2>
-      <label class="search-label" for="region-search">Search provinces
-        <input type="search" id="region-search" placeholder="Type a province name…" autocomplete="off">
-      </label>
-      <p class="card-note" id="regions-count"></p>
-      <div class="table-wrap">
-        <table id="regions-table">
-          <thead><tr>
-            <th data-sort="name" scope="col">Province ↕</th>
-            <th data-sort="pop" scope="col">Population (m) ↕</th>
-            <th scope="col">Area (km²)</th>
-            <th data-sort="density" scope="col">Density (/km²) ↕</th>
-            <th data-sort="poverty" scope="col">Poverty (%) ↕</th>
-          </tr></thead>
-          <tbody id="regions-body"></tbody>
-        </table>
-      </div>
-      <p class="source">Population: BPS 2024 mid-year estimates. Poverty: BPS, September 2024. Density computed from the two.</p>
-      <div class="detail" id="province-detail" hidden></div>
-    </article>
-  </section>
-
-  <section id="page-data" aria-label="All indicators" hidden>
-    <p class="lede">Every indicator on this site in one table — value, year and source — downloadable as a CSV file.</p>
-    <article class="card">
-      <h2>All indicators</h2>
-      <p><button type="button" id="download-csv">Download as CSV</button> <span id="csv-note" role="status"></span></p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th scope="col">Indicator</th><th scope="col">Value</th><th scope="col">Year</th><th scope="col">Source</th></tr></thead>
-          <tbody id="data-body"></tbody>
-        </table>
-      </div>
-    </article>
-  </section>
-
-  <section id="page-about" aria-label="Sources and methods" hidden>
-    <p class="lede">Where every number comes from, and what this site is.</p>
-    <article class="card">
-      <h2>Sources</h2>
-      <ul class="source-list">
-        <li><strong>BPS — Statistics Indonesia</strong> (bps.go.id): population, GDP, growth, inflation, unemployment, poverty, literacy, schooling, enrolment, trade.</li>
-        <li><strong>Ministry of Health</strong>, Indonesian Nutrition Status Survey (SSGI) 2024: stunting in children under five.</li>
-        <li><strong>World Bank</strong> (data.worldbank.org), 2023: maternal mortality ratio.</li>
-      </ul>
-      <h2>Methods</h2>
-      <p>Figures are rounded for display (population to one decimal, rates to two). Provincial density is computed from the published population and area figures. Where a figure is an estimate, the text says so.</p>
-      <h2>About this site</h2>
-      <p>Nusantara in Numbers is an original, independent presentation of official statistics. It is not affiliated with BPS or the Government of Indonesia, and it copies no other site's design, text or images. It runs entirely from its own files — no network request — on a desktop or a phone.</p>
-    </article>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap">
-    <p>Nusantara in Numbers — Indonesia's national statistics, plainly presented. Figures: BPS, Ministry of Health, World Bank. Updated 26 November 2026.</p>
-    <p><a href="#/data">All indicators</a> · <a href="#/about">Sources &amp; methods</a></p>
-  </div>
+<footer class="site-footer">
+  <p>Figures from BPS — Statistics Indonesia, the World Bank, the United Nations, the Ministry of Health and APJII. Each figure names its source and year on the page. See <a href="#/sources">Sources</a>.</p>
 </footer>
 
-<script type="module" src="app.js"></script>
+<script src="data.js"></script>
+<script src="charts.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

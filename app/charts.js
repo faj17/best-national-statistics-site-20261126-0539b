@@ -1,126 +1,180 @@
-// Small hand-rolled SVG charts. No library: three functions, one job each.
-// Every chart is drawn from the data passed in, with labelled axes and values.
+/* charts.js — hand-rolled SVG charts, no library, no network.
+ *
+ * One job: turn the series in data.js into SVG strings the views can drop
+ * into the page. Every chart labels its axes and values, so a screenshot
+ * of a chart reads as a chart without hovering anything.
+ */
 
-const SVGNS = "http://www.w3.org/2000/svg";
+"use strict";
 
-function el(tag, attrs, text) {
-  const n = document.createElementNS(SVGNS, tag);
-  for (const [k, v] of Object.entries(attrs || {})) n.setAttribute(k, String(v));
-  if (text !== undefined && text !== null) n.textContent = text;
-  return n;
+/* Palette shared by every chart on the site. */
+const CHART_COLORS = {
+  ink: "#14263f",
+  faint: "#5b6b7c",
+  grid: "#d9d2c2",
+  teal: "#0f766e",
+  amber: "#d97706",
+  rust: "#b45309",
+  slate: "#64748b",
+  slices: ["#0f766e", "#d97706", "#14263f", "#2d6a4f", "#7c3aed", "#94a3b8"],
+};
+
+/* Escape the few characters that would break an SVG text node. */
+function svgText(raw) {
+  return String(raw)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
-function niceMax(values) {
-  const m = Math.max(...values.map(Math.abs));
-  if (m <= 0) return 1;
-  const p = Math.pow(10, Math.floor(Math.log10(m)));
-  const f = m / p;
-  const step = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
-  return step * p;
+/* Round a number for a label: integers stay integers, the rest get 1 decimal. */
+function chartNum(n) {
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
-function fmt(v, decimals) {
-  return v.toFixed(decimals === undefined ? 1 : decimals);
-}
+/* Vertical bar chart from [year, value] points. Negative values hang
+ * below the zero line, so the 2020 growth dip shows as a dip. */
+function barChart(series, opts) {
+  const options = opts || {};
+  const width = options.width || 640;
+  const height = options.height || 300;
+  const padL = 52, padR = 14, padT = 18, padB = 34;
+  const values = series.points.map((p) => p[1]);
+  let top = Math.max(0, ...values);
+  let bottom = Math.min(0, ...values);
+  if (top === bottom) { top += 1; bottom -= 1; }
+  const span = top - bottom;
+  const plotW = width - padL - padR;
+  const plotH = height - padT - padB;
+  const yFor = (v) => padT + ((top - v) / span) * plotH;
+  const zeroY = yFor(0);
+  const slot = plotW / series.points.length;
+  const barW = Math.min(54, slot * 0.58);
 
-// Vertical bar chart. data: [{label, value}]. options: {unit, color, decimals}
-export function barChart(host, data, options) {
-  const opt = options || {};
-  const W = 640, H = 300, padL = 52, padB = 34, padT = 18, padR = 12;
-  host.innerHTML = "";
-  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opt.label || "Bar chart" });
-  const max = niceMax(data.map((d) => d.value));
-  const min = Math.min(0, ...data.map((d) => d.value));
-  const lo = min < 0 ? niceMax([-min]) * -1 : 0;
-  const iw = W - padL - padR, ih = H - padT - padB;
-  const y = (v) => padT + ih * (1 - (v - lo) / (max - lo));
-  const zeroY = y(0);
-  // gridlines + y labels
-  for (let i = 0; i <= 4; i++) {
-    const v = lo + ((max - lo) * i) / 4;
-    const yy = y(v);
-    svg.appendChild(el("line", { x1: padL, y1: yy, x2: W - padR, y2: yy, stroke: "#d8d2c4", "stroke-width": 1 }));
-    svg.appendChild(el("text", { x: padL - 8, y: yy + 4, "text-anchor": "end", "font-size": 11, fill: "#5c6b7a" }, fmt(v, 0)));
+  let out = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${svgText(series.label)}" xmlns="http://www.w3.org/2000/svg">`;
+  /* Gridlines: top, middle, zero. */
+  for (const frac of [0, 0.5, 1]) {
+    const y = padT + frac * plotH;
+    out += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${width - padR}" y2="${y.toFixed(1)}" stroke="${CHART_COLORS.grid}" stroke-width="1"/>`;
   }
-  const bw = iw / data.length;
-  data.forEach((d, i) => {
-    const x = padL + i * bw + bw * 0.18;
-    const w = bw * 0.64;
-    const top = y(Math.max(d.value, 0));
-    const bot = d.value >= 0 ? zeroY : y(d.value);
-    svg.appendChild(el("rect", { x, y: top, width: w, height: Math.max(1, bot - top), rx: 3, fill: d.value < 0 ? "#b3402e" : (opt.color || "#0e7c7b") }));
-    svg.appendChild(el("text", { x: x + w / 2, y: (d.value >= 0 ? top : bot) - 6, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#102a43" }, fmt(d.value, opt.decimals)));
-    svg.appendChild(el("text", { x: x + w / 2, y: H - 10, "text-anchor": "middle", "font-size": 12, fill: "#33475c" }, d.label));
+  out += `<line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${width - padR}" y2="${zeroY.toFixed(1)}" stroke="${CHART_COLORS.ink}" stroke-width="1.5"/>`;
+  out += `<text x="${padL - 8}" y="${(padT + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="${CHART_COLORS.faint}">${chartNum(top)}</text>`;
+  out += `<text x="${padL - 8}" y="${(padT + plotH / 2 + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="${CHART_COLORS.faint}">${chartNum(top - span / 2)}</text>`;
+  out += `<text x="${padL - 8}" y="${(padT + plotH + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="${CHART_COLORS.faint}">${chartNum(bottom)}</text>`;
+
+  series.points.forEach((point, i) => {
+    const year = point[0];
+    const value = point[1];
+    const x = padL + i * slot + (slot - barW) / 2;
+    const y = value >= 0 ? yFor(value) : zeroY;
+    const h = Math.abs(yFor(value) - zeroY);
+    const fill = value < 0 ? CHART_COLORS.rust : (options.color || CHART_COLORS.teal);
+    out += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="${fill}" rx="3"/>`;
+    const labelY = value >= 0 ? y - 6 : y + h + 14;
+    out += `<text x="${(x + barW / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="${CHART_COLORS.ink}">${chartNum(value)}</text>`;
+    out += `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 10}" text-anchor="middle" font-size="12" fill="${CHART_COLORS.faint}">${year}</text>`;
   });
-  svg.appendChild(el("line", { x1: padL, y1: zeroY, x2: W - padR, y2: zeroY, stroke: "#102a43", "stroke-width": 1.5 }));
-  host.appendChild(svg);
+  out += "</svg>";
+  return out;
 }
 
-// Line chart. data: [{label, value}]. options: {color, decimals, unit}
-export function lineChart(host, data, options) {
-  const opt = options || {};
-  const W = 640, H = 300, padL = 56, padB = 34, padT = 22, padR = 16;
-  host.innerHTML = "";
-  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opt.label || "Line chart" });
-  const vals = data.map((d) => d.value);
-  const rawHi = Math.max(...vals), rawLo = Math.min(...vals);
-  const span = Math.max(rawHi - rawLo, 1);
-  // Headroom above the highest point and below the lowest, so value labels
-  // never collide with the gridline labels at the chart's edges.
-  const hi = rawHi + span * 0.18;
-  const lo = rawLo - span * 0.18;
-  const iw = W - padL - padR, ih = H - padT - padB;
-  const x = (i) => padL + (iw * i) / (data.length - 1);
-  const y = (v) => padT + ih * (1 - (v - lo) / (hi - lo));
-  for (let i = 0; i <= 4; i++) {
-    const v = lo + ((hi - lo) * i) / 4;
-    const yy = y(v);
-    svg.appendChild(el("line", { x1: padL, y1: yy, x2: W - padR, y2: yy, stroke: "#d8d2c4", "stroke-width": 1 }));
-    svg.appendChild(el("text", { x: padL - 8, y: yy + 4, "text-anchor": "end", "font-size": 11, fill: "#5c6b7a" }, fmt(v, opt.decimals === undefined ? 1 : opt.decimals)));
+/* Line chart from [year, value] points, with a dot and a value on each. */
+function lineChart(series, opts) {
+  const options = opts || {};
+  const width = options.width || 640;
+  const height = options.height || 300;
+  const padL = 52, padR = 20, padT = 24, padB = 34;
+  const values = series.points.map((p) => p[1]);
+  let top = Math.max(...values);
+  let bottom = Math.min(...values);
+  const pad = (top - bottom) * 0.15 || 1;
+  top += pad;
+  bottom -= pad;
+  const plotW = width - padL - padR;
+  const plotH = height - padT - padB;
+  const xFor = (i) => padL + (i / (series.points.length - 1)) * plotW;
+  const yFor = (v) => padT + ((top - v) / (top - bottom)) * plotH;
+  const color = options.color || CHART_COLORS.teal;
+
+  let out = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${svgText(series.label)}" xmlns="http://www.w3.org/2000/svg">`;
+  for (const frac of [0, 0.5, 1]) {
+    const y = padT + frac * plotH;
+    out += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${width - padR}" y2="${y.toFixed(1)}" stroke="${CHART_COLORS.grid}" stroke-width="1"/>`;
   }
-  const pts = data.map((d, i) => `${x(i)},${y(d.value)}`).join(" ");
-  svg.appendChild(el("polyline", { points: pts, fill: "none", stroke: opt.color || "#0e7c7b", "stroke-width": 3, "stroke-linejoin": "round", "stroke-linecap": "round" }));
-  data.forEach((d, i) => {
-    svg.appendChild(el("circle", { cx: x(i), cy: y(d.value), r: 5, fill: "#faf7f2", stroke: opt.color || "#0e7c7b", "stroke-width": 2.5 }));
-    // First point's label sits right of the point, the last point's left of
-    // it, so neither runs into the y-axis labels; the lowest point's label
-    // goes below the point instead of above it.
-    const isLow = d.value === rawLo && rawLo < rawHi;
-    const lx = i === 0 ? x(i) + 30 : i === data.length - 1 ? x(i) - 30 : x(i);
-    const ly = isLow ? y(d.value) + 22 : y(d.value) - 11;
-    const anchor = i === 0 ? "start" : i === data.length - 1 ? "end" : "middle";
-    svg.appendChild(el("text", { x: lx, y: ly, "text-anchor": anchor, "font-size": 12, "font-weight": 700, fill: "#102a43" }, fmt(d.value, opt.decimals) + (opt.unit || "")));
-    svg.appendChild(el("text", { x: x(i), y: H - 10, "text-anchor": "middle", "font-size": 12, fill: "#33475c" }, d.label));
+  out += `<text x="${padL - 8}" y="${(padT + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="${CHART_COLORS.faint}">${chartNum(top - pad)}</text>`;
+  out += `<text x="${padL - 8}" y="${(padT + plotH + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="${CHART_COLORS.faint}">${chartNum(bottom + pad)}</text>`;
+
+  const path = series.points.map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(p[1]).toFixed(1)}`).join(" ");
+  /* A soft fill under the line, so the shape of the series reads at a glance. */
+  const area = `${path} L${xFor(series.points.length - 1).toFixed(1)},${(padT + plotH).toFixed(1)} L${xFor(0).toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
+  out += `<path d="${area}" fill="${color}" opacity="0.08"/>`;
+  out += `<path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  series.points.forEach((point, i) => {
+    const cx = xFor(i);
+    const cy = yFor(point[1]);
+    out += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="#fff" stroke="${color}" stroke-width="3"/>`;
+    out += `<text x="${cx.toFixed(1)}" y="${(cy - 12).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="${CHART_COLORS.ink}">${chartNum(point[1])}</text>`;
+    out += `<text x="${cx.toFixed(1)}" y="${height - 10}" text-anchor="middle" font-size="12" fill="${CHART_COLORS.faint}">${point[0]}</text>`;
   });
-  host.appendChild(svg);
+  out += "</svg>";
+  return out;
 }
 
-// Donut chart with a centre total. data: [{label, value, color}].
-export function donutChart(host, data, options) {
-  const opt = options || {};
-  const W = 320, H = 320, cx = 160, cy = 160, R = 118, r = 74;
-  host.innerHTML = "";
-  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opt.label || "Donut chart" });
-  const total = data.reduce((s, d) => s + d.value, 0);
-  let a = -Math.PI / 2;
-  data.forEach((d) => {
-    const frac = d.value / total;
-    const a2 = a + frac * Math.PI * 2;
-    const large = frac > 0.5 ? 1 : 0;
-    const x1 = cx + R * Math.cos(a), y1 = cy + R * Math.sin(a);
-    const x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2);
-    const ix1 = cx + r * Math.cos(a2), iy1 = cy + r * Math.sin(a2);
-    const ix2 = cx + r * Math.cos(a), iy2 = cy + r * Math.sin(a);
-    svg.appendChild(el("path", {
-      d: `M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${ix1} ${iy1} A ${r} ${r} 0 ${large} 0 ${ix2} ${iy2} Z`,
-      fill: d.color, stroke: "#faf7f2", "stroke-width": 2,
-    }));
-    const mid = a + (frac * Math.PI * 2) / 2;
-    const lx = cx + ((R + r) / 2) * Math.cos(mid), ly = cy + ((R + r) / 2) * Math.sin(mid);
-    svg.appendChild(el("text", { x: lx, y: ly + 4, "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: "#ffffff" }, fmt(d.value, 1) + "%"));
-    a = a2;
+/* Donut chart from [{name, share}] slices, with a legend underneath. */
+function donutChart(slices, opts) {
+  const options = opts || {};
+  const size = options.size || 300;
+  const cx = size / 2;
+  const cy = size / 2 - 8;
+  const outer = size / 2 - 14;
+  const inner = outer * 0.58;
+  const total = slices.reduce((sum, s) => sum + s.share, 0);
+  let angle = -Math.PI / 2;
+
+  const arc = (start, end, rOut, rIn) => {
+    const large = end - start > Math.PI ? 1 : 0;
+    const x1 = cx + rOut * Math.cos(start), y1 = cy + rOut * Math.sin(start);
+    const x2 = cx + rOut * Math.cos(end), y2 = cy + rOut * Math.sin(end);
+    const x3 = cx + rIn * Math.cos(end), y3 = cy + rIn * Math.sin(end);
+    const x4 = cx + rIn * Math.cos(start), y4 = cy + rIn * Math.sin(start);
+    return `M${x1.toFixed(1)},${y1.toFixed(1)} A${rOut},${rOut} 0 ${large} 1 ${x2.toFixed(1)},${y2.toFixed(1)} L${x3.toFixed(1)},${y3.toFixed(1)} A${rIn},${rIn} 0 ${large} 0 ${x4.toFixed(1)},${y4.toFixed(1)} Z`;
+  };
+
+  let out = `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Shares of GDP by sector" xmlns="http://www.w3.org/2000/svg">`;
+  slices.forEach((slice, i) => {
+    const sweep = (slice.share / total) * Math.PI * 2;
+    out += `<path d="${arc(angle, angle + sweep, outer, inner)}" fill="${CHART_COLORS.slices[i % CHART_COLORS.slices.length]}"/>`;
+    angle += sweep;
   });
-  svg.appendChild(el("text", { x: cx, y: cy - 4, "text-anchor": "middle", "font-size": 26, "font-weight": 700, fill: "#102a43" }, fmt(total, 0) + "%"));
-  svg.appendChild(el("text", { x: cx, y: cy + 20, "text-anchor": "middle", "font-size": 12, fill: "#5c6b7a" }, opt.centreLabel || "of employed"));
-  host.appendChild(svg);
+  out += `<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="26" font-weight="700" fill="${CHART_COLORS.ink}">100%</text>`;
+  out += `<text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="12" fill="${CHART_COLORS.faint}">of GDP, 2024</text>`;
+  out += "</svg>";
+
+  let legend = `<ul class="legend">`;
+  slices.forEach((slice, i) => {
+    legend += `<li><span class="swatch" style="background:${CHART_COLORS.slices[i % CHART_COLORS.slices.length]}"></span>${svgText(slice.name)} — <strong>${chartNum(slice.share)}%</strong></li>`;
+  });
+  legend += "</ul>";
+  return out + legend;
+}
+
+/* Two horizontal bars comparing two values on one scale. */
+function compareBars(first, second, opts) {
+  const options = opts || {};
+  const width = options.width || 640;
+  const max = Math.max(first.value, second.value) * 1.12;
+  const rowH = 64;
+  const height = rowH * 2 + 24;
+  const labelW = 210;
+
+  const row = (item, y, color) => {
+    const barW = ((item.value / max) * (width - labelW - 70)).toFixed(1);
+    return `<text x="0" y="${y + 22}" font-size="14" fill="${CHART_COLORS.ink}">${svgText(item.label)}</text>` +
+      `<rect x="${labelW}" y="${y}" width="${barW}" height="30" fill="${color}" rx="4"/>` +
+      `<text x="${labelW + Number(barW) + 10}" y="${y + 21}" font-size="15" font-weight="700" fill="${CHART_COLORS.ink}">${chartNum(item.value)} years</text>`;
+  };
+
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Mean and expected years of schooling" xmlns="http://www.w3.org/2000/svg">` +
+    row(first, 8, CHART_COLORS.teal) + row(second, 8 + rowH, CHART_COLORS.amber) + "</svg>";
 }
